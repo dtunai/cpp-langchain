@@ -25,7 +25,9 @@ This tool can execute arbitrary code on the host machine. Use with caution and o
 
 ### Usage
 
-Below is a simple script to use CppSubprocessTool with Langchain. For more advanced usages please check example.ipynb
+Below is a simple script to use CppSubprocessTool with Langchain. 
+
+For more advanced usages please check [example notebook.](https://github.com/0xdti/cpp-langchain/blob/main/example.ipynb)
 
 ```python
 
