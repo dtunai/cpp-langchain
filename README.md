@@ -1,111 +1,66 @@
-# python-package-template
+## Langchain Custom C++ Executor
 
-This is a template repository for Python package projects.
+This package provides an integrated tool for generating and executing C/C++ code snippets externally in Langchain.
 
-## In this README :point_down:
+Allows Langchain users to specify the desired C++ standard version and set optional CPU time limits for code execution. Provides an interface with subprocess to run the generated C/C++ code.
 
-- [Features](#features)
-- [Usage](#usage)
-  - [Initial setup](#initial-setup)
-  - [Creating releases](#creating-releases)
-- [Projects using this template](#projects-using-this-template)
-- [FAQ](#faq)
-- [Contributing](#contributing)
+### Installation
 
-## Features
+```bash
+pip3 install cpp-langchain
+```
 
-This template repository comes with all of the boilerplate needed for:
+### Features
 
-⚙️ Robust (and free) CI with [GitHub Actions](https://github.com/features/actions):
-  - Unit tests ran with [PyTest](https://docs.pytest.org) against multiple Python versions and operating systems.
-  - Type checking with [mypy](https://github.com/python/mypy).
-  - Linting with [ruff](https://astral.sh/ruff).
-  - Formatting with [isort](https://pycqa.github.io/isort/) and [black](https://black.readthedocs.io/en/stable/).
+- **C/C++ Code Generation and Execution:** Generate and execute C/C++ code snippets to provide answers.
+- **Version Selection:** Specify the desired C++ standard version (e.g., c++11, c++14, c++17, c++20).
+- **CPU Time Limits:** Set optional CPU time limits for code execution to prevent long-running processes.
 
-🤖 [Dependabot](https://github.blog/2020-06-01-keep-all-your-packages-up-to-date-with-dependabot/) configuration to keep your dependencies up-to-date.
+### Disclaimer
 
-📄 Great looking API documentation built using [Sphinx](https://www.sphinx-doc.org/en/master/) (run `make docs` to preview).
+This tool can execute arbitrary code on the host machine. Use with caution and only if you fully understand the security risks associated with subprocess execution.
 
-🚀 Automatic GitHub and PyPI releases. Just follow the steps in [`RELEASE_PROCESS.md`](./RELEASE_PROCESS.md) to trigger a new release.
+- **Default Safety:** The `allow_dangerous_code` option is set to `False` by default to prevent unauthorized code execution.
+- **Risk Acceptance:** If you choose to set `allow_dangerous_code` to `True`, you acknowledge and accept the potential risks of executing malicious code.
 
-## Usage
+### Usage
 
-### Initial setup
+Below is a simple script to use CppSubprocessTool with Langchain. For more advanced usages please check example.ipynb
 
-1. [Create a new repository](https://github.com/allenai/python-package-template/generate) from this template with the desired name of your project.
+```python
 
-    *Your project name (i.e. the name of the repository) and the name of the corresponding Python package don't necessarily need to match, but you might want to check on [PyPI](https://pypi.org/) first to see if the package name you want is already taken.*
+import os
 
-2. Create a Python 3.8 or newer virtual environment.
+os.environ["OPENAI_API_KEY"] = ""
 
-    *If you're not sure how to create a suitable Python environment, the easiest way is using [Miniconda](https://docs.conda.io/en/latest/miniconda.html). On a Mac, for example, you can install Miniconda using [Homebrew](https://brew.sh/):*
+from cpp_langchain import CppSubprocessTool
+tools = [CppSubprocessTool(allow_dangerous_code=True)]
 
-    ```
-    brew install miniconda
-    ```
+from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate
 
-    *Then you can create and activate a new Python environment by running:*
+llm = ChatOpenAI(model="gpt-4")
 
-    ```
-    conda create -n my-package python=3.9
-    conda activate my-package
-    ```
+prompt = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            "You are a helpful coding assistant. Make sure to use the CppSubprocessTool tool for code execution.",
+        ),
+        ("placeholder", "{chat_history}"),
+        ("human", "{input}"),
+        ("placeholder", "{agent_scratchpad}"),
+    ]
+)
 
-3. Now that you have a suitable Python environment, you're ready to personalize this repository. Just run:
+# Construct the Tools agent
+agent = create_tool_calling_agent(llm, tools, prompt)
 
-    ```
-    pip install -r setup-requirements.txt
-    python scripts/personalize.py
-    ```
+# Create an agent executor by passing in the agent and tools
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
-    And then follow the prompts.
+# Execute agent
+agent_executor.invoke({"input": "What is the 10th fibonacci number?"})
+```
 
-    :pencil: *NOTE: This script will overwrite the README in your repository.*
-
-4. Commit and push your changes, then make sure all GitHub Actions jobs pass.
-
-5. (Optional) If you plan on publishing your package to PyPI, add repository secrets for `PYPI_USERNAME` and `PYPI_PASSWORD`. To add these, go to "Settings" > "Secrets" > "Actions", and then click "New repository secret".
-
-    *If you don't have PyPI account yet, you can [create one for free](https://pypi.org/account/register/).*
-
-6. (Optional) If you want to deploy your API docs to [readthedocs.org](https://readthedocs.org), go to the [readthedocs dashboard](https://readthedocs.org/dashboard/import/?) and import your new project.
-
-    Then click on the "Admin" button, navigate to "Automation Rules" in the sidebar, click "Add Rule", and then enter the following fields:
-
-    - **Description:** Publish new versions from tags
-    - **Match:** Custom Match
-    - **Custom match:** v[vV]
-    - **Version:** Tag
-    - **Action:** Activate version
-
-    Then hit "Save".
-
-    *After your first release, the docs will automatically be published to [your-project-name.readthedocs.io](https://your-project-name.readthedocs.io/).*
-
-### Creating releases
-
-Creating new GitHub and PyPI releases is easy. The GitHub Actions workflow that comes with this repository will handle all of that for you.
-All you need to do is follow the instructions in [RELEASE_PROCESS.md](./RELEASE_PROCESS.md).
-
-## Projects using this template
-
-Here is an incomplete list of some projects that started off with this template:
-
-- [ai2-tango](https://github.com/allenai/tango)
-- [cached-path](https://github.com/allenai/cached_path)
-- [beaker-py](https://github.com/allenai/beaker-py)
-- [gantry](https://github.com/allenai/beaker-gantry)
-- [ip-bot](https://github.com/abe-101/ip-bot)
-
-☝️ *Want your work featured here? Just open a pull request that adds the link.*
-
-## FAQ
-
-#### Should I use this template even if I don't want to publish my package?
-
-Absolutely! If you don't want to publish your package, just delete the `docs/` directory and the `release` job in [`.github/workflows/main.yml`](https://github.com/allenai/python-package-template/blob/main/.github/workflows/main.yml).
-
-## Contributing
-
-If you find a bug :bug:, please open a [bug report](https://github.com/allenai/python-package-template/issues/new?assignees=&labels=bug&template=bug_report.md&title=).
-If you have an idea for an improvement or new feature :rocket:, please open a [feature request](https://github.com/allenai/python-package-template/issues/new?assignees=&labels=Feature+request&template=feature_request.md&title=).
