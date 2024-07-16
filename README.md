@@ -1,8 +1,6 @@
 ## Langchain Custom C++ Executor
 
-This package provides an integrated tool for generating and executing C/C++ code snippets externally in Langchain.
-
-Allows Langchain users to specify the desired C++ standard version and set optional CPU time limits for code execution. Provides an interface with subprocess to run the generated C/C++ code.
+This package provides an integrated tool for generating and executing C/C++ code snippets externally in Langchain. Allows Langchain users to specify the desired C++ standard version and set optional CPU time limits for code execution. Provides an interface with subprocess to run the generated C/C++ code.
 
 ### Installation
 
